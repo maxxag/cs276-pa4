@@ -44,14 +44,28 @@ public class PairwiseLearner extends Learner {
 			model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR, LibSVM.TAGS_KERNELTYPE));
 		}
 	}
-	
 	public PairwiseLearner(boolean isLinearKernel, boolean includeBM25, boolean includeSmallestWindow, boolean includePageRank){
 		try{
 			model = new LibSVM();
 		} catch (Exception e){
 			e.printStackTrace();
 		}
-
+		
+		if(isLinearKernel){
+			model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR, LibSVM.TAGS_KERNELTYPE));
+		}
+		this.includeBM25 = includeBM25;
+		this.includeSmallestWindow = includeSmallestWindow;
+		this.includePageRank = includePageRank;
+	}
+	public PairwiseLearner(double C, double gamma, boolean isLinearKernel, boolean includeBM25, boolean includeSmallestWindow, boolean includePageRank){
+		try{
+			model = new LibSVM();
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+		model.setCost(C);
+		model.setGamma(gamma);
 		if(isLinearKernel){
 			model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR, LibSVM.TAGS_KERNELTYPE));
 		}

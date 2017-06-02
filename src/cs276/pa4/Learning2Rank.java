@@ -31,7 +31,8 @@ public class Learning2Rank {
    * @param idfs
    * @return
    */
-  public static Classifier train(String train_signal_file, String train_rel_file, int task, Map<String,Double> idfs, boolean includeBM25, boolean includeSmallestWindow, boolean includePageRank) {
+  public static Classifier train(String train_signal_file, String train_rel_file, int task, Map<String,Double> idfs, 
+								 double C, double gamma, boolean includeBM25, boolean includeSmallestWindow, boolean includePageRank) {
     System.err.println("## Training with feature_file =" + train_signal_file + ", rel_file = " + train_rel_file + " ... \n");
     Classifier model = null;
     Learner learner = null;
@@ -47,7 +48,8 @@ public class Learning2Rank {
        * @TODO: Your code here, add more features 
        * */
     	boolean isLinearKernel = true;
-        learner = new PairwiseLearner(isLinearKernel, includeBM25, includeSmallestWindow, includePageRank);
+    	learner = new PairwiseLearner(isLinearKernel, includeBM25, includeSmallestWindow, includePageRank);
+        //learner = new PairwiseLearner(C, gamma, isLinearKernel, includeBM25, includeSmallestWindow, includePageRank);
     	
       System.err.println("Task 3");
       
@@ -77,7 +79,8 @@ public class Learning2Rank {
    * @param idfs
    * @return
    */
-  public static Map<Query, List<Document>> test(String test_signal_file, Classifier model, int task, Map<String,Double> idfs, boolean includeBM25, boolean includeSmallestWindow, boolean includePageRank){
+  public static Map<Query, List<Document>> test(String test_signal_file, Classifier model, int task, Map<String,Double> idfs, 
+												double C, double gamma, boolean includeBM25, boolean includeSmallestWindow, boolean includePageRank){
     System.err.println("## Testing with feature_file=" + test_signal_file + " ... \n");
     Map<Query, List<Document>> ranked_queries = new HashMap<Query, List<Document>>();
     Learner learner = null;
@@ -89,7 +92,8 @@ public class Learning2Rank {
     } else if (task == 3) {
     
     	boolean isLinearKernel = true;
-        learner = new PairwiseLearner(isLinearKernel, includeBM25, includeSmallestWindow, includePageRank);
+    	learner = new PairwiseLearner(isLinearKernel, includeBM25, includeSmallestWindow, includePageRank);
+        //learner = new PairwiseLearner(C, gamma, isLinearKernel, includeBM25, includeSmallestWindow, includePageRank);
       /* 
        * @TODO: Your code here, add more features 
        * */
@@ -159,20 +163,22 @@ public class Learning2Rank {
     /* Populate idfs */
     Map<String,Double> idfs = Util.loadDFs(dfFile);
     
-    boolean includeBM25 = true, includePageRank = false, includeSmallestWindow = false;
+    boolean includeBM25 = true, includePageRank = true, includeSmallestWindow = true;
+	double C = Math.pow(2.0, (double)-3);
+	double gamma = Math.pow(2.0, (double)-3);
     
     /* Train & test */
     System.err.println("### Running task" + task + "...");    
-    Classifier model = train(train_signal_file, train_rel_file, task, idfs, includeBM25, includeSmallestWindow, includePageRank);
+    Classifier model = train(train_signal_file, train_rel_file, task, idfs, C, gamma, includeBM25, includeSmallestWindow, includePageRank);
     /* performance on the training data */
-    Map<Query, List<Document>> trained_ranked_queries = test(train_signal_file, model, task, idfs, includeBM25, includeSmallestWindow, includePageRank);
+    Map<Query, List<Document>> trained_ranked_queries = test(train_signal_file, model, task, idfs, C, gamma, includeBM25, includeSmallestWindow, includePageRank);
     String trainOutFile="tmp.train.ranked";
     writeRankedResultsToFile(trained_ranked_queries, new PrintStream(new FileOutputStream(trainOutFile)));
     NdcgMain ndcg = new NdcgMain(train_rel_file);
     System.err.println("# Trained NDCG=" + ndcg.score(trainOutFile));
     (new File(trainOutFile)).delete();
     
-    Map<Query, List<Document>> ranked_queries = test(test_signal_file, model, task, idfs, includeBM25, includeSmallestWindow, includePageRank);
+    Map<Query, List<Document>> ranked_queries = test(test_signal_file, model, task, idfs, C, gamma, includeBM25, includeSmallestWindow, includePageRank);
     
     /* Output results */
     if(ranked_out_file == null || ranked_out_file.isEmpty()){ /* output to stdout */
